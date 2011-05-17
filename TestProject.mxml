@@ -33,7 +33,7 @@
 				
 				rest = new RESTConnection();
 				
-				rest.oauthConnection = new OAuthConnection("3MVG9Km_cBLhsuPw4bEHyKjC0xIjmiOfiVPNKrEJ_ccv5b5tquttc.cs8yprB.kXFKihALHWwsqL4vFl4PF2Q","6863711482039949213","https://127.0.0.1/");
+				rest.oauthConnection = new OAuthConnection("","","https://127.0.0.1/");
 				rest.oauthConnection.login(this.stage,new mx.rpc.AsyncResponder(loginHandler,com.force.utility.util.genericError));
 				
 			}
