@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+					   xmlns:s="library://ns.adobe.com/flex/spark"
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   width="776" height="462">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.force.http.rest.DeleteRequest;
+			import com.force.http.rest.RESTConnection;
+			import com.force.oauth.OAuthConnection;
+			import com.force.utility.util;
+			
+			import mx.collections.ArrayCollection;
+			import mx.rpc.AsyncResponder;
+			import mx.utils.ObjectUtil;
+			
+			
+			private var rest:RESTConnection;
+			
+			
+			private function init():void {
+				if(this.stage != null) {
+					login();
+				}
+			}
+			
+			private function login():void {
+				trace("Login");
+				OAuthConnection.clearAccess();
+				
+				rest = new RESTConnection();
+				
+				rest.oauthConnection = new OAuthConnection("3MVG9Km_cBLhsuPw4bEHyKjC0xIjmiOfiVPNKrEJ_ccv5b5tquttc.cs8yprB.kXFKihALHWwsqL4vFl4PF2Q","6863711482039949213","https://127.0.0.1/");
+				rest.oauthConnection.login(this.stage,new mx.rpc.AsyncResponder(loginHandler,com.force.utility.util.genericError));
+				
+			}
+			
+			private function loginHandler(loginResult:Object, token:Object):void {
+				rest.oauth = loginResult;
+				refreshData(null,null);
+			}
+			
+			private function refreshData(result:Object=null,token:Object=null):void {
+				rest.query("SELECT ID, Name, Email, Phone from Contact LIMIT 5",new mx.rpc.AsyncResponder(handleResult,com.force.utility.util.genericError));
+			}
+			
+			private function handleResult(result:Array,token:Object):void {
+				resultGrid.dataProvider = new ArrayCollection(result);
+			}
+			
+			private function createContact():void {
+				var c:Object = new Object();
+				c.LastName = txtLastName.text;
+				rest.create(c,"Contact",new AsyncResponder(refreshData,com.force.utility.util.genericError));
+			}
+			
+			private function deleteContact():void {
+				var delReq:DeleteRequest = new DeleteRequest(rest);
+				delReq.deleteObject(resultGrid.selectedItem.Id,"Contact",new AsyncResponder(refreshData,com.force.utility.util.genericError));
+			}
+			
+			private function updateContact():void {
+				var c:Object = new Object();
+				c.Phone = '888-888-8888';
+				rest.update(c, resultGrid.selectedItem.Id, "Contact", new AsyncResponder(refreshData,com.force.utility.util.genericError)); 
+			}
+			
+			
+			
+		]]>
+	</fx:Script>
+	<s:Button x="10" y="10" label="Login" creationComplete="init()" click="login()"/>
+	<s:DataGrid x="30" y="68" width="584" height="253" requestedRowCount="4" id="resultGrid">
+		<s:columns>
+			<s:ArrayList>
+				<s:GridColumn dataField="Name" headerText="Name" width="350"></s:GridColumn>
+				<s:GridColumn dataField="Email" headerText="Email" ></s:GridColumn>
+				<s:GridColumn dataField="Phone" headerText="Phone" ></s:GridColumn>
+			</s:ArrayList>
+		</s:columns>
+	</s:DataGrid>
+	<s:Button x="160" y="330" label="Create" click="createContact()" />
+	<s:TextInput x="30" y="329" text="Last Name" id="txtLastName" />
+	<s:Button x="503" y="329" width="111" label="Update Phone" click="updateContact()" />
+	<s:Button x="622" y="68" label="Delete" click="deleteContact()" />
+</s:WindowedApplication>
